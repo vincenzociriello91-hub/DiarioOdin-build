@@ -192,7 +192,11 @@ public class SchermoService extends AccessibilityService {
     }
 
     /** Senza root non si leggono gli input reali: un tocco su un pulsante è quasi sempre tuo. */
-    private String chiTocco() { return d.rootInput ? d.chi() : "TU"; }
+    private String chiTocco() {
+        if (d.rootInput) return d.chi();
+        d.input();
+        return "TU";
+    }
 
     private static boolean isToast(CharSequence cls) { return cls != null && cls.toString().contains("Toast"); }
 
@@ -208,7 +212,17 @@ public class SchermoService extends AccessibilityService {
             List<AccessibilityWindowInfo> ws = getWindows();
             for (AccessibilityWindowInfo w : ws) {
                 AccessibilityNodeInfo r = w.getRoot();
-                if (r != null) raccogli(r, righe, 0);
+                if (r == null) continue;
+                CharSequence pk = r.getPackageName();
+                // app già aperta prima dell'avvio del servizio: nessun evento di cambio finestra, si vede da qui
+                if (w.isActive() && w.getType() == AccessibilityWindowInfo.TYPE_APPLICATION && pk != null
+                        && !pk.toString().equals(ultimaApp)) {
+                    ultimaApp = pk.toString();
+                    d.appInPrimoPiano(ultimaApp, null);
+                }
+                // barra di stato e tasti di navigazione: rumore, tranne quando stai usando la tendina
+                if (w.getType() == AccessibilityWindowInfo.TYPE_SYSTEM && !"com.android.systemui".equals(ultimaApp)) continue;
+                raccogli(r, righe, 0);
             }
         } catch (Exception e) {
             d.errore("lettura dello schermo", e);

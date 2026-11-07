@@ -93,9 +93,27 @@ final class Radice {
             String testo = l.length() > 400 ? l.substring(0, 400) : l;
             int i = testo.indexOf(": [");
             if (i > 0) testo = testo.substring(i + 2);
+            // campi: [utente,pid,processo,...]; am_kill ha il motivo al 5° posto
+            String[] c = testo.replace("[", "").replace("]", "").split(",");
+            String chi = "ODIN";
+            if (c.length >= 3) {
+                String pkg = c[2].split(":")[0];
+                String perche = "";
+                if ("CHIUSA".equals(tipo) && c.length >= 5) {
+                    String m = c[4].trim();
+                    if (m.equals("remove task")) { perche = "tolta dalle app recenti"; chi = d.chi(); }
+                    else if (m.startsWith("empty") || m.startsWith("cached")) perche = "chiusa per liberare memoria (era in sottofondo)";
+                    else if (m.contains("lmk") || m.contains("low")) perche = "chiusa per memoria scarsa";
+                    else if (m.contains("stop") || m.contains("force")) { perche = "forzata la chiusura"; chi = d.chi(); }
+                    else perche = m;
+                } else if ("CRASH".equals(tipo) && c.length >= 6) perche = c[4].trim() + ": " + c[5].trim();
+                else if ("BLOCCO".equals(tipo)) perche = "non risponde (ANR)";
+                else if ("MORTA".equals(tipo)) perche = "processo terminato";
+                testo = d.nome(pkg) + " (" + c[2] + ")" + (perche.isEmpty() ? "" : ": " + perche);
+            }
             // am_proc_died è solo cronologia (succede di continuo ai processi in cache); il resto va anche nel riepilogo
             if (!"MORTA".equals(tipo)) d.morte(tipo + " " + testo);
-            d.evento("ODIN", tipo, null, testo);
+            d.evento(chi, tipo, null, testo);
         }
         pLog.destroy();
     }

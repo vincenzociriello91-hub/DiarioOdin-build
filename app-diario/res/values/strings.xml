@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="descrizione">Registra tutto ciò che compare sullo schermo della Odin (testi, app, tocchi, notifiche, eventi di sistema) e crea un report a ogni sessione in Download/Odin2_report.</string>
+</resources>

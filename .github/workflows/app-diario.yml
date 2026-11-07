@@ -1,0 +1,27 @@
+# Compila l'app Diario Odin e salva l'APK in modulo/app/ (lo zip del modulo si crea poi a mano).
+# Parte solo quando cambia app-diario/, per non sprecare minuti.
+name: App Diario Odin
+on:
+  push:
+    branches: [main]
+    paths: ["app-diario/**", ".github/workflows/app-diario.yml"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compila
+        run: sh app-diario/build.sh
+      - name: Salva l'APK nel repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add modulo/app/DiarioOdin.apk modulo/app/versione
+          git diff --cached --quiet && exit 0
+          git commit -m "App Diario Odin: APK compilato ($(cat modulo/app/versione))"
+          git pull --rebase origin main
+          git push

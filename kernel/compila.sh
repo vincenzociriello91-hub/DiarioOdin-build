@@ -18,12 +18,14 @@ prepara() {
   nota "=== kernel $V | $KERNEL_RELEASE | $(date -u '+%d/%m/%Y %H:%M') UTC | fase prepara ==="
   # --- compilatore: lo stesso di LineageOS, altrimenti configurazione e controlli CFI non coincidono
   mkdir -p "$W/clang"
-  for ref in refs/heads/main refs/heads/android-latest-release refs/heads/master; do
+  # la pagina del repository AOSP indica clang-r596125 nel ramo mirror-goog-main-llvm-toolchain-source; gli altri sono di riserva
+  for ref in refs/heads/mirror-goog-main-llvm-toolchain-source refs/heads/main-kernel refs/heads/main refs/heads/android-latest-release refs/heads/android17-release; do
     u="https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/$ref/$CLANG.tar.gz"
-    if curl -fsSL --retry 4 --retry-delay 30 -o "$W/clang.tgz" "$u" && tar -xzf "$W/clang.tgz" -C "$W/clang" 2>/dev/null && [ -x "$W/clang/bin/clang" ]; then
+    cod=$(curl -sSL --retry 3 --retry-delay 30 -o "$W/clang.tgz" -w '%{http_code}' "$u" || true)
+    if [ "$cod" = 200 ] && tar -xzf "$W/clang.tgz" -C "$W/clang" 2>/dev/null && [ -x "$W/clang/bin/clang" ]; then
       nota "compilatore da $ref"; break
     fi
-    nota "compilatore non trovato in $ref"
+    nota "compilatore non trovato in $ref (risposta $cod, $(stat -c %s "$W/clang.tgz" 2>/dev/null || echo 0) byte)"
   done
   rm -f "$W/clang.tgz"
   [ -x "$W/clang/bin/clang" ] || errore "compilatore $CLANG non scaricabile"

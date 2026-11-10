@@ -30,4 +30,8 @@ configurazione identica a quella della Odin (a parte il numero di build del comp
 6157-		}
 versione: 5.15.220-g18fa4eb5ea18
 fase prepara: OK
-=== fase costruisci | 13:08 UTC ===
+=== fase costruisci | 13:18 UTC ===
+compilato in 23 min
+Image: 50829824 byte | Linux version 5.15.220-g18fa4eb5ea18 (runner@runnervm7aw5e) (Android (15682573, +pgo, +bol
+simboli esportati: 15466 | futex_waitv: 0 | BBR: 0
+fase costruisci: OK

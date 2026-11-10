@@ -18,19 +18,29 @@ prepara() {
   nota "=== kernel $V | $KERNEL_RELEASE | $(date -u '+%d/%m/%Y %H:%M') UTC | fase prepara ==="
   # --- compilatore: lo stesso di LineageOS, altrimenti configurazione e controlli CFI non coincidono
   mkdir -p "$W/clang"
-  # la pagina del repository AOSP indica clang-r596125 nel ramo mirror-goog-main-llvm-toolchain-source; gli altri sono di riserva
-  for ref in refs/heads/mirror-goog-main-llvm-toolchain-source refs/heads/main-kernel refs/heads/main refs/heads/android-latest-release refs/heads/android17-release; do
-    u="https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/$ref/$CLANG.tar.gz"
+  # La pagina del repository AOSP indica clang-r596125 nel ramo mirror-goog-main-llvm-toolchain-source. La cartella
+  # viene ricompilata nel tempo con un numero di build diverso: si cerca nella sua storia la build usata da LineageOS.
+  G=https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86
+  ref=refs/heads/mirror-goog-main-llvm-toolchain-source; punto=$ref
+  storia=$(curl -sSL --retry 3 --retry-delay 20 "$G/+log/$ref/$CLANG?format=JSON&n=40" | tail -n +2 | python3 -c 'import json,sys; print(" ".join(x["commit"] for x in json.load(sys.stdin)["log"]))' 2>/dev/null || true)
+  nota "storia della cartella $CLANG: $(echo $storia | wc -w) commit"
+  for c in $storia; do
+    nomi=$(curl -sSL --retry 3 --retry-delay 20 "$G/+/$c/$CLANG/?format=JSON" | tail -n +2 | python3 -c 'import json,sys; print(" ".join(e["name"] for e in json.load(sys.stdin)["entries"]))' 2>/dev/null || true)
+    nota "  ${c:0:12}: $(echo "$nomi" | tr ' ' '\n' | grep -i -E 'manifest|version' | tr '\n' ' ')"
+    case " $nomi " in *" manifest_$CLANG_BUILD.xml "*) punto=$c; nota "  build $CLANG_BUILD trovata in ${c:0:12}"; break;; esac
+  done
+  for da in "$punto" "$ref"; do
+    u="$G/+archive/$da/$CLANG.tar.gz"
     cod=$(curl -sSL --retry 3 --retry-delay 30 -o "$W/clang.tgz" -w '%{http_code}' "$u" || true)
-    if [ "$cod" = 200 ] && tar -xzf "$W/clang.tgz" -C "$W/clang" 2>/dev/null && [ -x "$W/clang/bin/clang" ]; then
-      nota "compilatore da $ref"; break
-    fi
-    nota "compilatore non trovato in $ref (risposta $cod, $(stat -c %s "$W/clang.tgz" 2>/dev/null || echo 0) byte)"
+    if [ "$cod" = 200 ] && tar -xzf "$W/clang.tgz" -C "$W/clang" 2>/dev/null && [ -x "$W/clang/bin/clang" ]; then nota "compilatore da ${da:0:60}"; break; fi
+    nota "compilatore non scaricato da ${da:0:60} (risposta $cod, $(stat -c %s "$W/clang.tgz" 2>/dev/null || echo 0) byte)"
+    [ "$punto" = "$ref" ] && break
   done
   rm -f "$W/clang.tgz"
   [ -x "$W/clang/bin/clang" ] || errore "compilatore $CLANG non scaricabile"
   cv=$(clang --version | head -n 1); nota "compilatore: $cv"
   case $cv in *"$CLANG_SEGNO"*) ;; *) errore "compilatore diverso da quello della Odin ($CLANG_SEGNO)";; esac
+  case $cv in *"($CLANG_BUILD,"*) nota "stessa build del compilatore della Odin ($CLANG_BUILD)";; *) nota "ATTENZIONE: build del compilatore diversa da quella della Odin ($CLANG_BUILD): stessi sorgenti LLVM, cambia la riga CC_VERSION_TEXT";; esac
 
   # --- sorgenti: solo il commit del kernel installato
   git init -q "$SRC"; git -C "$SRC" remote add origin "$KERNEL_REPO"
@@ -44,8 +54,10 @@ prepara() {
   cp "$OUT/.config" "$RIS/config-originale"
   grep -E '^(# )?CONFIG_(CC_VERSION_TEXT|CLANG_VERSION|LLD_VERSION|MODULE_SIG_PROTECT|MODULE_ALLOW_BTF_MISMATCH|DEBUG_INFO_BTF|DEBUG_INFO_BTF_MODULES|LTO_CLANG_FULL|CFI_CLANG|TRIM_UNUSED_KSYMS|TCP_CONG_ADVANCED|COMPAT_VDSO|PAHOLE_[A-Z0-9_]*)[= ]' "$OUT/.config" >> "$STATO" || true
   imp=$(impronta "$OUT/.config"); nota "impronta della configurazione: $imp"
-  [ "$imp" = "$CONFIG_IMPRONTA" ] || errore "configurazione diversa da quella della Odin ($CONFIG_IMPRONTA)"
-  nota "configurazione identica a quella della Odin"
+  # Impronta diversa = non fermarsi: la configurazione generata qui viene pubblicata in kernel/esiti/config-originale e la
+  # Odin la confronta riga per riga con la sua (modulo, kernel_confronta). Si installa solo dopo aver letto quel confronto.
+  if [ "$imp" = "$CONFIG_IMPRONTA" ]; then nota "configurazione identica a quella della Odin"
+  else nota "ATTENZIONE: impronta diversa da quella della Odin ($CONFIG_IMPRONTA): serve il confronto riga per riga fatto dalla Odin"; echo "$imp" > "$RIS/da-confrontare"; fi
   # come si comporta il kernel se le informazioni BTF di un modulo non combaciano (i moduli della ROM le hanno)
   nota "--- BTF dei moduli (kernel/bpf/btf.c)"; grep -n -A7 'failed to validate module' "$SRC/kernel/bpf/btf.c" | head -n 14 >> "$STATO" || nota "(riga non trovata)"
 

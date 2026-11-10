@@ -9,7 +9,7 @@ nota() { echo "$*" | tee -a "$STATO"; }
 errore() { nota "ERRORE: $*"; exit 1; }
 nota "=== verifica | $KERNEL_RELEASE | $(date -u '+%d/%m/%Y %H:%M') UTC ==="
 o=$R/kernel-originale/vmlinux.symvers; m=$R/kernel-misura/vmlinux.symvers
-[ -s "$o" ] && [ -s "$m" ] || errore "manca una delle due compilazioni (vedi stato-originale.txt e stato-misura.txt)"
+[ -s "$o" ] && [ -s "$m" ] || errore "manca una delle due compilazioni (vedi stato-originale.txt e stato-misura.txt); scaricati: $(ls "$R" | tr '\n' ' ')"
 cut -f1,2 "$o" | LC_ALL=C sort > "$R/a"; cut -f1,2 "$m" | LC_ALL=C sort > "$R/b"
 persi=$(LC_ALL=C comm -23 "$R/a" "$R/b" | wc -l)
 nota "simboli esportati: originale $(wc -l < "$R/a"), su misura $(wc -l < "$R/b"); cambiati o spariti: $persi"

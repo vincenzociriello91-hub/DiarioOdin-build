@@ -53,6 +53,9 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      # l'elenco dei risultati si aggiorna qualche secondo dopo il caricamento: alla compilazione 4 la verifica, partita
+      # 5 secondi dopo la fine del su misura, ne ha trovato uno solo e si è fermata
+      - run: sleep 60
       - uses: actions/download-artifact@v4
         with:
           path: ris

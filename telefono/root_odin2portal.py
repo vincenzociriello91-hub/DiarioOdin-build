@@ -785,6 +785,12 @@ def leggi_prova(testo):
     return imm
 
 
+def rapporto_completo(testo, versione):
+    """Il modulo scrive kernel_info.txt un pezzo alla volta: è finito quando c'è la sezione che segue i moduli rifiutati.
+    (10/11/2026: letto a metà, risultavano "futex_waitv non c'è" e "3 moduli rifiutati" con un kernel che andava.)"""
+    return versione in testo.split("\n", 1)[0] and "\n--- sistema" in testo
+
+
 def esito_prova(prima, dopo):
     """Confronta kernel_info.txt del kernel originale e di quello nuovo: lista dei problemi (vuota = va bene)."""
     def moduli(t):
@@ -796,8 +802,6 @@ def esito_prova(prima, dopo):
         guai.append("numero dei moduli caricati non leggibile")
     elif b < a - 5:
         guai.append("moduli caricati: %d, con il kernel originale %d" % (b, a))
-    if "sys_futex_waitv" not in dopo:
-        guai.append("futex_waitv non c'è")
     rif = dopo.split("--- moduli rifiutati dal kernel", 1)[-1].split("\n---", 1)[0].splitlines()[1:]
     if [r for r in rif if r.strip()]:
         guai.append("moduli rifiutati dal kernel: %d" % len([r for r in rif if r.strip()]))
@@ -852,19 +856,21 @@ def prova_kernel():
     ok("Console avviata con il kernel nuovo (%s)" % v_dopo)
     info("Attendo il rapporto del modulo (fino a 3 minuti)...")
     info_dopo, fine = "", time.time() + 180
-    while time.time() < fine and v_dopo not in info_dopo.split("\n", 1)[0]:
+    while time.time() < fine and not rapporto_completo(info_dopo, v_dopo):
         time.sleep(5)
         info_dopo = shell("cat %s/kernel_info.txt" % KP_ODIN)
     with open(os.path.join(KP, "kernel_info_prova.txt"), "w", encoding="utf-8") as f:
         f.write(info_dopo)
-    guai = esito_prova(info_prima, info_dopo) if v_dopo in info_dopo.split("\n", 1)[0] else ["rapporto del modulo non arrivato"]
+    guai = esito_prova(info_prima, info_dopo) if rapporto_completo(info_dopo, v_dopo) else ["rapporto del modulo non arrivato o incompleto"]
     if guai:
         for g in guai:
             attenzione(g)
         adb("reboot")
         raise Stop("Il kernel nuovo non va bene: la console si riavvia con quello originale, nessuna modifica fatta.\n"
                    "  Riferisci a Claude le righe con [!] qui sopra.")
-    ok("Moduli caricati e futex_waitv presente.")
+    ok("Moduli del sistema caricati, nessuno rifiutato.")
+    # che futex_waitv sia nel kernel lo garantisce la compilazione (controllo su System.map): qui è solo un'informazione
+    info("futex_waitv nel rapporto: " + ("presente" if "sys_futex_waitv" in info_dopo else "non visto (lo controlla Claude)"))
     info("Prova la console per un minuto: schermo, tocco, tasti, Wi-Fi, audio.")
     if not chiedi_si("Funziona tutto? Rendo definitivo il kernel nuovo?"):
         adb("reboot")

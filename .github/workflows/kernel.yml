@@ -1,0 +1,65 @@
+# Compila il kernel della Odin 2 Portal: una copia identica all'originale (riferimento) e quella su misura,
+# poi verifica che i moduli della ROM restino validi e solo allora pubblica lo zip. Esiti in kernel/esiti/.
+# Parte quando cambiano i file che decidono cosa si compila (non gli esiti).
+name: Kernel Odin 2 Portal
+on:
+  push:
+    branches: [main]
+    paths: ["kernel/versione.conf", "kernel/compila.sh", "kernel/anykernel.sh", "kernel/verifica.sh", ".github/workflows/kernel.yml"]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: kernel
+  cancel-in-progress: true
+jobs:
+  compila:
+    strategy:
+      fail-fast: false
+      matrix:
+        variante: [originale, misura]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 345
+    steps:
+      - uses: actions/checkout@v4
+      - name: Spazio, memoria e strumenti
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/share/boost /usr/share/swift
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq bc bison flex libssl-dev libelf-dev dwarves cpio kmod zip binutils
+          sudo fallocate -l 12G /swap-kernel && sudo chmod 600 /swap-kernel && sudo mkswap -q /swap-kernel && sudo swapon /swap-kernel
+          df -h / | tail -n 1; free -g | sed -n 2,3p; nproc; pahole --version
+      - name: Prepara (compilatore, sorgenti, configurazione, patch)
+        run: bash kernel/compila.sh ${{ matrix.variante }} prepara
+      - name: Esito della preparazione
+        if: always()
+        run: bash kernel/esito.sh ~/kernel/risultati/stato-${{ matrix.variante }}.txt
+      - name: Costruisce
+        run: bash kernel/compila.sh ${{ matrix.variante }} costruisci
+      - name: Esito della costruzione
+        if: always()
+        run: bash kernel/esito.sh ~/kernel/risultati/stato-${{ matrix.variante }}.txt
+      - name: Conserva i risultati
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-${{ matrix.variante }}
+          path: ~/kernel/risultati
+          retention-days: 14
+  verifica:
+    needs: compila
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: ris
+      - name: Simboli a confronto e pubblicazione
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash kernel/verifica.sh ris
+      - name: Esito della verifica
+        if: always()
+        run: bash kernel/esito.sh ris/stato-verifica.txt

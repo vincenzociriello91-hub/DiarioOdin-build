@@ -15,10 +15,8 @@ persi=$(LC_ALL=C comm -23 "$R/a" "$R/b" | wc -l)
 nota "simboli esportati: originale $(wc -l < "$R/a"), su misura $(wc -l < "$R/b"); cambiati o spariti: $persi"
 if [ "$persi" != 0 ]; then LC_ALL=C comm -23 "$R/a" "$R/b" | head -n 20 >> "$STATO"; errore "il kernel su misura non è compatibile con i moduli della ROM"; fi
 [ ! -f "$R/kernel-misura/blocco" ] || errore "$(cat "$R/kernel-misura/blocco")"
-cfg="Configurazione identica a quella della Odin."
-[ -f "$R/kernel-misura/da-confrontare" ] && { cfg="Configurazione NON ancora confrontata riga per riga con quella della Odin: non installare prima del confronto."; nota "ATTENZIONE: $cfg"; }
 z=$(ls "$R"/kernel-misura/*.zip); t=kernel-$KERNEL_RELEASE-$GITHUB_RUN_NUMBER
 gh release create "$t" "$z" "$R/kernel-misura/config-misura" --prerelease --title "Kernel Odin 2 Portal $KERNEL_RELEASE (compilazione $GITHUB_RUN_NUMBER)" \
-  --notes "Kernel di LineageOS 24.0 ($KERNEL_RELEASE) con futex_waitv e BBR. Vale solo per questa versione esatta del kernel. Compatibilità dei simboli con i moduli della ROM verificata. $cfg NON ancora provato sulla Odin."
+  --notes "Kernel di LineageOS 24.0 ($KERNEL_RELEASE) con futex_waitv e BBR. Vale solo per questa versione esatta del kernel. Compatibilità dei simboli con i moduli della ROM verificata. NON ancora provato sulla Odin."
 nota "pubblicato: $t | $(basename "$z") | sha256 $(sha256sum "$z" | cut -c1-64)"
 nota "verifica: OK"

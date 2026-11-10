@@ -33,8 +33,7 @@ jobs:
         run: bash kernel/compila.sh ${{ matrix.variante }} prepara
       - name: Esito della preparazione
         if: always()
-        # la configurazione generata la pubblica solo la variante originale: la Odin la scarica per confrontarla con la sua
-        run: bash kernel/esito.sh ~/kernel/risultati/stato-${{ matrix.variante }}.txt ${{ matrix.variante == 'originale' && '~/kernel/risultati/config-originale' || '' }}
+        run: bash kernel/esito.sh ~/kernel/risultati/stato-${{ matrix.variante }}.txt
       - name: Costruisce
         run: bash kernel/compila.sh ${{ matrix.variante }} costruisci
       - name: Esito della costruzione

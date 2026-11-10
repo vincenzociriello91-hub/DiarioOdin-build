@@ -1,6 +1,8 @@
-=== kernel misura | 5.15.220-g18fa4eb5ea18 | 10/11/2026 12:38 UTC | fase prepara ===
+=== kernel misura | 5.15.220-g18fa4eb5ea18 | 10/11/2026 13:03 UTC | fase prepara ===
+storia della cartella clang-r596125: 0 commit
 compilatore da refs/heads/mirror-goog-main-llvm-toolchain-source
 compilatore: Android (15682573, +pgo, +bolt, +lto, +mlgo, based on r596125) clang version 22.0.2 (https://android.googlesource.com/toolchain/llvm-project de03d430485c884861198b25459851f429cbdbad)
+ATTENZIONE: build del compilatore diversa da quella della Odin (15071444): stessi sorgenti LLVM, cambia la riga CC_VERSION_TEXT
 sorgenti: 18fa4eb5ea1818ab9c6f211683c09e3b2a32d2e6 Revert "include: uapi: linux: input-event-codes: Add BTN_DND"
 CONFIG_CC_VERSION_TEXT="Android (15682573, +pgo, +bolt, +lto, +mlgo, based on r596125) clang version 22.0.2 (https://android.googlesource.com/toolchain/llvm-project de03d430485c884861198b25459851f429cbdbad)"
 CONFIG_CLANG_VERSION=220002
@@ -17,4 +19,34 @@ CONFIG_PAHOLE_HAS_SPLIT_BTF=y
 CONFIG_DEBUG_INFO_BTF_MODULES=y
 CONFIG_MODULE_ALLOW_BTF_MISMATCH=y
 impronta della configurazione: f40539b5957978e2e5b3aaf462b0ed1d7b7f53efd8ea7e0949ca9d2983170224
-ERRORE: configurazione diversa da quella della Odin (8a8e993cf50bfeaa66314ed4995875b210da030e98c5fbc8deaadbd12e820382)
+ATTENZIONE: impronta diversa da quella della Odin (8a8e993cf50bfeaa66314ed4995875b210da030e98c5fbc8deaadbd12e820382): serve il confronto riga per riga fatto dalla Odin
+--- BTF dei moduli (kernel/bpf/btf.c)
+6150:				pr_warn("failed to validate module [%s] BTF: %ld\n",
+6151-					mod->name, PTR_ERR(btf));
+6152-				err = PTR_ERR(btf);
+6153-			} else {
+6154-				pr_warn_once("Kernel module BTF mismatch detected, BTF debug info may be unavailable for some modules\n");
+6155-			}
+6156-			goto out;
+6157-		}
+--- futex_waitv: patch 7a04d5c: 0001-futex-Implement-sys_futex_waitv.patch 0002-futex-x86-Wire-up-sys_futex_waitv.patch 
+patching file include/linux/syscalls.h
+Hunk #2 succeeded at 629 (offset 5 lines).
+patching file include/uapi/asm-generic/unistd.h
+patching file include/uapi/linux/futex.h
+Hunk #1 succeeded at 43 (offset 2 lines).
+can't find file to patch at input line 132
+Perhaps you used the wrong -p or --strip option?
+The text leading up to this was:
+--------------------------
+|diff --git a/kernel/futex.c b/kernel/futex.c
+|index 408cad5e8968..d7dc0bd9379c 100644
+|--- a/kernel/futex.c
+|+++ b/kernel/futex.c
+--------------------------
+File to patch: 
+Skip this patch? [y] 
+Skipping patch.
+2 out of 2 hunks ignored
+patching file kernel/sys_ni.c
+ERRORE: patch non applicabile: 0001-futex-Implement-sys_futex_waitv.patch

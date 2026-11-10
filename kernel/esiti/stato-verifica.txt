@@ -1,2 +1,2 @@
-=== verifica | 5.15.220-g18fa4eb5ea18 | 10/11/2026 12:12 UTC ===
+=== verifica | 5.15.220-g18fa4eb5ea18 | 10/11/2026 12:44 UTC ===
 ERRORE: manca una delle due compilazioni (vedi stato-originale.txt e stato-misura.txt)

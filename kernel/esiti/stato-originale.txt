@@ -1,0 +1,5 @@
+=== kernel originale | 5.15.220-g18fa4eb5ea18 | 10/11/2026 12:12 UTC | fase prepara ===
+compilatore non trovato in refs/heads/main
+compilatore non trovato in refs/heads/android-latest-release
+compilatore non trovato in refs/heads/master
+ERRORE: compilatore clang-r596125 non scaricabile

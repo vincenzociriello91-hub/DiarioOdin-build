@@ -40,3 +40,10 @@ configurazione identica a quella della Odin (a parte il numero di build del comp
 > CONFIG_TCP_CONG_BBR=y
 versione: 5.15.220-g18fa4eb5ea18
 fase prepara: OK
+=== fase costruisci | 13:18 UTC ===
+compilato in 26 min
+Image: 50829824 byte | Linux version 5.15.220-g18fa4eb5ea18 (runner@runnervm7aw5e) (Android (15682573, +pgo, +bol
+simboli esportati: 15466 | futex_waitv: 1 | BBR: 1
+AnyKernel3: 41f04bd
+pacchetto: Odin2Portal-kernel-5.15.220-g18fa4eb5ea18-misura.zip | 24984696 byte | sha256 1e0d348da4f90e4d8c02491c0f66b74ee825c5a69196dd5301a5bac06b5febd6
+fase costruisci: OK

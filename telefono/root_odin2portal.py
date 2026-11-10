@@ -841,8 +841,10 @@ def prova_kernel():
     try:
         attendi_avvio(300)
     except Stop:
-        raise Stop("Con il kernel nuovo la console non si è avviata.\n  Per tornare com'eri " + SPEGNI
-                   + "\n  Poi dillo a Claude.")
+        raise Stop("Dal cavo non vedo la console avviata con il kernel nuovo.\n"
+                   "  Se sullo schermo è accesa e funziona, il kernel è partito e si è perso solo il collegamento USB:\n"
+                   "  riavviala normalmente (torna il kernel originale) e dillo a Claude.\n"
+                   "  Se è ferma: " + SPEGNI + "\n  Poi dillo a Claude.")
     v_dopo = shell("uname -v")
     if not v_dopo or v_dopo == v_prima:
         raise Stop("La console è ripartita con il kernel di prima: l'avvio di prova non ha avuto effetto.\n"

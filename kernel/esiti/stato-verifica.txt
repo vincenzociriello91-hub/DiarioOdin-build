@@ -1,1 +1,5 @@
-nessun esito: la fase non è arrivata a scriverlo (12/11 18:45 UTC)
+=== verifica | 5.15.223-g5646ff2f4a18 | 12/11/2026 19:41 UTC ===
+kernel 5646ff2f4a184a5c45e6f57d35668323efa608e3 | LineageOS 2026-11-09 | impronta della configurazione 29bc7f68824a5e690b0545151abad4288373b4503c66d74cac5e00d167af3458
+simboli esportati: originale 15521, su misura 15521; cambiati o spariti: 0
+pubblicato: kernel-5.15.223-g5646ff2f4a18-7 | Odin2Portal-kernel-5.15.223-g5646ff2f4a18-misura.zip | sha256 d1b133735d5e5d442f69c7a3566813aa376ab767addf7e9b0fed93d7076b94c3
+verifica: OK

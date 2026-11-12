@@ -40,3 +40,10 @@ impronta da confrontare con quella della Odin quando avrà questo kernel
 > CONFIG_TCP_CONG_BBR=y
 versione: 5.15.223-g5646ff2f4a18
 fase prepara: OK
+=== fase costruisci | 18:53 UTC ===
+compilato in 46 min
+Image: 50833920 byte | Linux version 5.15.223-g5646ff2f4a18 (runner@runnervm7aw5e) (Android (15682573, +pgo, +bol
+simboli esportati: 15521 | futex_waitv: 1 | BBR: 1
+AnyKernel3: 41f04bd
+pacchetto: Odin2Portal-kernel-5.15.223-g5646ff2f4a18-misura.zip | 25003595 byte | sha256 d1b133735d5e5d442f69c7a3566813aa376ab767addf7e9b0fed93d7076b94c3
+fase costruisci: OK

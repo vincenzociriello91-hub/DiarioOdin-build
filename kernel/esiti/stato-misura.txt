@@ -1,1 +1,42 @@
-nessun esito: la fase non è arrivata a scriverlo (12/11 18:44 UTC)
+=== kernel misura | auto | 12/11/2026 18:48 UTC | fase prepara ===
+compilatore da refs/heads/mirror-goog-main-llvm-toolchain-source
+compilatore: Android (15682573, +pgo, +bolt, +lto, +mlgo, based on r596125) clang version 22.0.2 (https://android.googlesource.com/toolchain/llvm-project de03d430485c884861198b25459851f429cbdbad)
+build del compilatore diversa da quella della Odin (15071444): stessi sorgenti LLVM, cambia solo la riga CC_VERSION_TEXT
+sorgenti: 5646ff2f4a184a5c45e6f57d35668323efa608e3 Merge remote-tracking branch 'sm8550/lineage-21' into HEAD
+CONFIG_CC_VERSION_TEXT="Android (15682573, +pgo, +bolt, +lto, +mlgo, based on r596125) clang version 22.0.2 (https://android.googlesource.com/toolchain/llvm-project de03d430485c884861198b25459851f429cbdbad)"
+CONFIG_CLANG_VERSION=220002
+CONFIG_LLD_VERSION=220002
+CONFIG_PAHOLE_VERSION=125
+CONFIG_COMPAT_VDSO=y
+CONFIG_LTO_CLANG_FULL=y
+CONFIG_CFI_CLANG=y
+CONFIG_MODULE_SIG_PROTECT=y
+# CONFIG_TRIM_UNUSED_KSYMS is not set
+# CONFIG_TCP_CONG_ADVANCED is not set
+CONFIG_DEBUG_INFO_BTF=y
+CONFIG_PAHOLE_HAS_SPLIT_BTF=y
+CONFIG_DEBUG_INFO_BTF_MODULES=y
+CONFIG_MODULE_ALLOW_BTF_MISMATCH=y
+impronta della configurazione: 29bc7f68824a5e690b0545151abad4288373b4503c66d74cac5e00d167af3458
+impronta da confrontare con quella della Odin quando avrà questo kernel
+--- BTF dei moduli (kernel/bpf/btf.c)
+6167:				pr_warn("failed to validate module [%s] BTF: %ld\n",
+6168-					mod->name, PTR_ERR(btf));
+6169-				err = PTR_ERR(btf);
+6170-			} else {
+6171-				pr_warn_once("Kernel module BTF mismatch detected, BTF debug info may be unavailable for some modules\n");
+6172-			}
+6173-			goto out;
+6174-		}
+--- futex_waitv: patch 7a04d5c: 0001-futex-Implement-sys_futex_waitv.patch 0002-futex-x86-Wire-up-sys_futex_waitv.patch 
+  applicata: 0001-futex-Implement-sys_futex_waitv.patch
+  applicata: 0002-futex-x86-Wire-up-sys_futex_waitv.patch
+  futex_waitv nei sorgenti: include/uapi/asm-generic/unistd.h include/linux/syscalls.h kernel/sys_ni.c kernel/futex/core.c 
+  file cambiati: arch/x86/entry/syscalls/syscall_32.tbl arch/x86/entry/syscalls/syscall_64.tbl include/linux/syscalls.h include/uapi/asm-generic/unistd.h include/uapi/linux/futex.h kernel/futex/core.c kernel/sys_ni.c 
+--- configurazione cambiata rispetto all'originale
+> CONFIG_DEFAULT_CUBIC=y
+< CONFIG_MODULE_SIG_PROTECT=y
+> CONFIG_TCP_CONG_ADVANCED=y
+> CONFIG_TCP_CONG_BBR=y
+versione: 5.15.223-g5646ff2f4a18
+fase prepara: OK

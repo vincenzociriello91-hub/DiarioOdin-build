@@ -1,4 +1,1 @@
-=== verifica | 5.15.220-g18fa4eb5ea18 | 10/11/2026 14:35 UTC ===
-simboli esportati: originale 15466, su misura 15466; cambiati o spariti: 0
-pubblicato: kernel-5.15.220-g18fa4eb5ea18-5 | Odin2Portal-kernel-5.15.220-g18fa4eb5ea18-misura.zip | sha256 b6fee2f4f99a19507310e325c8be12c265c22c811654574a1137c6f1d1c0ddde
-verifica: OK
+nessun esito: la fase non è arrivata a scriverlo (12/11 18:45 UTC)

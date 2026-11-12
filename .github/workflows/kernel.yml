@@ -1,19 +1,39 @@
 # Compila il kernel della Odin 2 Portal: una copia identica all'originale (riferimento) e quella su misura,
 # poi verifica che i moduli della ROM restino validi e solo allora pubblica lo zip. Esiti in kernel/esiti/.
-# Parte quando cambiano i file che decidono cosa si compila (non gli esiti).
+# Parte quando cambiano i file che decidono cosa si compila (non gli esiti) e ogni notte: il robot (kernel/robot.sh)
+# guarda se LineageOS ha pubblicato una versione con un kernel nuovo e in quel caso lo compila da solo.
 name: Kernel Odin 2 Portal
 on:
   push:
     branches: [main]
     paths: ["kernel/versione.conf", "kernel/compila.sh", "kernel/anykernel.sh", "kernel/verifica.sh", ".github/workflows/kernel.yml"]
   workflow_dispatch:
+  schedule:
+    - cron: "23 3 * * *"
 permissions:
   contents: write
 concurrency:
   group: kernel
   cancel-in-progress: true
 jobs:
+  controlla:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      compila: ${{ steps.robot.outputs.compila }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - id: robot
+        name: C'è un kernel nuovo da compilare?
+        run: bash kernel/robot.sh "$RUNNER_TEMP/stato-robot.txt"
+      - name: Esito del robot
+        if: always()
+        run: bash kernel/esito.sh "$RUNNER_TEMP/stato-robot.txt"
   compila:
+    needs: controlla
+    if: needs.controlla.outputs.compila == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -22,6 +42,8 @@ jobs:
     timeout-minutes: 345
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main   # versione.conf può essere appena stato aggiornato dal robot
       - name: Spazio, memoria e strumenti
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/share/boost /usr/share/swift
@@ -47,12 +69,14 @@ jobs:
           path: ~/kernel/risultati
           retention-days: 14
   verifica:
-    needs: compila
-    if: always()
+    needs: [controlla, compila]
+    if: always() && needs.controlla.outputs.compila == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main   # versione.conf può essere appena stato aggiornato dal robot
       # l'elenco dei risultati si aggiorna qualche secondo dopo il caricamento: alla compilazione 4 la verifica, partita
       # 5 secondi dopo la fine del su misura, ne ha trovato uno solo e si è fermata
       - run: sleep 60

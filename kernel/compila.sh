@@ -44,8 +44,13 @@ prepara() {
   cp "$OUT/.config" "$RIS/config-originale"
   grep -E '^(# )?CONFIG_(CC_VERSION_TEXT|CLANG_VERSION|LLD_VERSION|MODULE_SIG_PROTECT|MODULE_ALLOW_BTF_MISMATCH|DEBUG_INFO_BTF|DEBUG_INFO_BTF_MODULES|LTO_CLANG_FULL|CFI_CLANG|TRIM_UNUSED_KSYMS|TCP_CONG_ADVANCED|COMPAT_VDSO|PAHOLE_[A-Z0-9_]*)[= ]' "$OUT/.config" >> "$STATO" || true
   imp=$(impronta "$OUT/.config"); nota "impronta della configurazione: $imp"
-  [ "$imp" = "$CONFIG_IMPRONTA" ] || errore "configurazione diversa da quella della Odin ($CONFIG_IMPRONTA)"
-  nota "configurazione identica a quella della Odin (a parte il numero di build del compilatore)"
+  echo "$imp" > "$RIS/impronta"
+  # "auto" = kernel preparato dal robot prima che la Odin lo abbia: l'impronta si confronta dopo, con kernel_info.txt della Odin
+  if [ "$CONFIG_IMPRONTA" = auto ]; then nota "impronta da confrontare con quella della Odin quando avrà questo kernel"
+  else
+    [ "$imp" = "$CONFIG_IMPRONTA" ] || errore "configurazione diversa da quella della Odin ($CONFIG_IMPRONTA)"
+    nota "configurazione identica a quella della Odin (a parte il numero di build del compilatore)"
+  fi
   # come si comporta il kernel se le informazioni BTF di un modulo non combaciano (i moduli della ROM le hanno)
   nota "--- BTF dei moduli (kernel/bpf/btf.c)"; grep -n -A7 'failed to validate module' "$SRC/kernel/bpf/btf.c" | head -n 14 >> "$STATO" || nota "(riga non trovata)"
 
@@ -53,7 +58,9 @@ prepara() {
   # --- versione: deve essere quella dell'originale
   "${MK[@]}" prepare > "$RIS/prepare.log" 2>&1 || { tail -n 40 "$RIS/prepare.log" >> "$STATO"; errore "preparazione"; }
   rel=$(cat "$OUT/include/config/kernel.release"); nota "versione: $rel"
-  [ "$rel" = "$KERNEL_RELEASE" ] || errore "versione diversa da $KERNEL_RELEASE"
+  if [ "$KERNEL_RELEASE" = auto ]; then [[ $rel =~ ^5\.15\.[0-9]+-g${KERNEL_COMMIT:0:12}$ ]] || errore "versione inattesa: $rel"
+  else [ "$rel" = "$KERNEL_RELEASE" ] || errore "versione diversa da $KERNEL_RELEASE"; fi
+  echo "$rel" > "$RIS/release"   # da qui in poi il nome della versione si legge da questo file
   nota "fase prepara: OK"
 }
 
@@ -116,9 +123,10 @@ costruisci() {
     git clone -q --depth 1 https://github.com/osm0sis/AnyKernel3 "$W/ak3"
     nota "AnyKernel3: $(git -C "$W/ak3" rev-parse --short HEAD)"
     rm -rf "$W/ak3/.git" "$W/ak3/.github" "$W/ak3/README.md" "$W/ak3/ramdisk" "$W/ak3/patch" "$W/ak3/modules"
-    sed "s/@KERNEL_RELEASE@/$KERNEL_RELEASE/" "$QUI/anykernel.sh" > "$W/ak3/anykernel.sh"
+    REL=$(cat "$RIS/release")
+    sed "s/@KERNEL_RELEASE@/$REL/" "$QUI/anykernel.sh" > "$W/ak3/anykernel.sh"
     cp "$RIS/Image" "$W/ak3/Image"
-    Z=$RIS/Odin2Portal-kernel-$KERNEL_RELEASE-misura.zip
+    Z=$RIS/Odin2Portal-kernel-$REL-misura.zip
     (cd "$W/ak3" && zip -qr9 "$Z" .)
     nota "pacchetto: $(basename "$Z") | $(stat -c %s "$Z") byte | sha256 $(sha256sum "$Z" | cut -c1-64)"
     rm -f "$RIS/Image"   # è già dentro lo zip

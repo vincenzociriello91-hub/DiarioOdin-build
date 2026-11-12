@@ -30,3 +30,8 @@ impronta da confrontare con quella della Odin quando avrà questo kernel
 6174-		}
 versione: 5.15.223-g5646ff2f4a18
 fase prepara: OK
+=== fase costruisci | 18:53 UTC ===
+compilato in 40 min
+Image: 50833920 byte | Linux version 5.15.223-g5646ff2f4a18 (runner@runnervm7aw5e) (Android (15682573, +pgo, +bol
+simboli esportati: 15521 | futex_waitv: 0 | BBR: 0
+fase costruisci: OK

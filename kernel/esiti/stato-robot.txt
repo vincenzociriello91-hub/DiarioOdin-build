@@ -1,4 +1,4 @@
-=== robot | 12/11/2026 18:45 UTC | evento workflow_dispatch | ultimo kernel compilato 18fa4eb5ea18 ===
+=== robot | 13/11/2026 11:15 UTC | evento schedule | ultimo kernel compilato 5646ff2f4a18 ===
 ultima LineageOS pubblicata: 2026-11-09, kernel 5646ff2f4a18 (dal manifesto della versione)
-versione.conf aggiornato: si compila il kernel nuovo
-compila: true
+questo kernel è già stato compilato
+compila: false

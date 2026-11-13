@@ -1,0 +1,18 @@
+# Ponte veloce Claude <-> Odin. Pubblicato da .github/workflows/ponte.yml.
+# HASH_* sono impronte sha256: i valori veri si ricavano dalla chiave della Odin (mai in questo repository).
+name = "odin-ponte"
+main = "worker.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+
+[[durable_objects.bindings]]
+name = "PONTE"
+class_name = "Ponte"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Ponte"]
+
+[vars]
+HASH_ODIN = "b7fb6df04171c008b6c3264b9e2293896817d23ef7303e82826d0fd1cf22aa2f"
+HASH_MCP = "41f47f491f31922c559746ccff54f1d93c6963e68c9c729e8354d00f62a92640"

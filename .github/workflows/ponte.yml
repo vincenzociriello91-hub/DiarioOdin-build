@@ -1,5 +1,5 @@
 # Pubblica su Cloudflare il ponte veloce Claude <-> Odin (ponte/). Parte quando cambia ponte/.
-# Segreti del repository: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID (messi da Vincenzo, mai nei file).
+# Segreto del repository: CLOUDFLARE_API_TOKEN (messo da Vincenzo, mai nei file). ID account in ponte/wrangler.toml.
 name: Ponte Odin
 on:
   push:
@@ -21,7 +21,6 @@ jobs:
         working-directory: ponte
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -o pipefail
           npx --yes wrangler@4 deploy 2>&1 | tee ../deploy.log

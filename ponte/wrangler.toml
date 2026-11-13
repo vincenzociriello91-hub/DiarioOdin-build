@@ -4,6 +4,7 @@ name = "odin-ponte"
 main = "worker.js"
 compatibility_date = "2025-09-01"
 workers_dev = true
+account_id = "bfcba49d9ccdfabba0b16c67d9d65ed3"   # ID account di Vincenzo (non è un segreto)
 
 [[durable_objects.bindings]]
 name = "PONTE"

@@ -1,20 +1,20 @@
-data: 2026-11-13 12:45 UTC
+data: 2026-11-14 06:29 UTC
 esito: success
 indirizzo: https://odin-ponte.vincenzociriello91.workers.dev
 --- ultime righe
 
- ⛅️ wrangler 4.161.0
+ ⛅️ wrangler 4.162.0
 ────────────────────
-Total Upload: 8.82 KiB / gzip: 2.97 KiB
+Total Upload: 16.61 KiB / gzip: 6.23 KiB
 Your Worker has access to the following bindings:
 Binding                                                         Resource                  
 env.PONTE (Ponte)                                               Durable Object            
 env.HASH_ODIN ("b7fb6df04171c008b6c3264b9e2293896817d...")      Environment Variable      
 env.HASH_MCP ("41f47f491f31922c559746ccff54f1d93c696...")       Environment Variable      
 
-Uploaded odin-ponte (1.78 sec)
-Deployed odin-ponte triggers (1.48 sec)
+Uploaded odin-ponte (1.59 sec)
+Deployed odin-ponte triggers (0.34 sec)
   https://odin-ponte.vincenzociriello91.workers.dev
-Current Version ID: 7e974e77-53d3-47bc-afaa-260b4daead5b
+Current Version ID: f7a86aff-f8ef-45a6-b1d3-3582900528ac
 
 Cloudflare collects anonymous telemetry about your usage of Wrangler. Learn more at https://github.com/cloudflare/workers-sdk/tree/main/packages/wrangler/telemetry.md

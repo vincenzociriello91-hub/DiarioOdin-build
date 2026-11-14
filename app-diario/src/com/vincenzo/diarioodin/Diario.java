@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.SystemClock;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -62,6 +63,8 @@ public final class Diario {
     private final List<String> morti = new ArrayList<>();
     private final List<String> erroriApp = new ArrayList<>();
     private int azioniTu, azioniOdin;
+    // ora del muro meno tempo dall'accensione: cambia solo se l'orologio viene corretto
+    private long baseOrologio = System.currentTimeMillis() - SystemClock.elapsedRealtime();
     // aggiornati dai thread root: solo valori semplici
     volatile long ultimoInput;
     volatile int tocchi, tasti;
@@ -154,6 +157,7 @@ public final class Diario {
         final long t = System.currentTimeMillis();
         h.post(new Runnable() {
             public void run() {
+                controllaOrologio();
                 if (acceso) {
                     h.removeCallbacks(chiusuraStandby);
                     if (inizio == 0) nuovaSessione();
@@ -189,6 +193,11 @@ public final class Diario {
                 }
             }
         });
+    }
+
+    /** Orologio cambiato (es. corretto dalla rete dopo un'accensione con batteria scarica). */
+    void orologio() {
+        h.post(new Runnable() { public void run() { controllaOrologio(); } });
     }
 
     void chiudiSessione(final String motivo) {
@@ -246,6 +255,25 @@ public final class Diario {
         try { out.write(b.toString()); } catch (Exception e) { out = null; }
     }
 
+    /**
+     * Se l'orologio è saltato di oltre un minuto, sposta gli istanti della sessione dello stesso salto:
+     * così durate, nome del report e giorno restano giusti (prima un salto di 6 giorni dava 143 h di schermo).
+     */
+    private void controllaOrologio() {
+        long nuova = System.currentTimeMillis() - SystemClock.elapsedRealtime();
+        long salto = nuova - baseOrologio;
+        if (Math.abs(salto) < 60000) return;
+        baseOrologio = nuova;
+        ultimoInput += salto;
+        if (inizio == 0) return;
+        inizio += salto; schermoAccesoDa += salto; appDa += salto;
+        Properties p = leggi(meta);
+        p.setProperty("inizio", "" + inizio);
+        salva(p, meta);
+        scrivi(System.currentTimeMillis(), "ODIN", "OROLOGIO", null, "corretto di " + (salto > 0 ? "+" : "-") + durata(Math.abs(salto))
+                + ": gli orari scritti prima di questa riga seguono l'orologio vecchio");
+    }
+
     private void flush() { try { if (out != null) out.flush(); } catch (Exception ignored) { } }
 
     private void accumulaApp() {
@@ -255,6 +283,7 @@ public final class Diario {
     }
 
     private void fine(String motivo) {
+        controllaOrologio();
         long t = System.currentTimeMillis();
         accumulaApp();
         long schermoTot = schermoMs + (schermoAcceso ? t - schermoAccesoDa : 0);

@@ -103,8 +103,10 @@ final class Radice {
                     String m = c[4].trim();
                     if (m.equals("remove task")) { perche = "tolta dalle app recenti"; chi = d.chi(); }
                     else if (m.startsWith("empty") || m.startsWith("cached")) perche = "chiusa per liberare memoria (era in sottofondo)";
+                    else if (m.contains("kill all background")) perche = "chiusa dal modulo per liberare RAM prima del gioco (normale)";
                     else if (m.contains("lmk") || m.contains("low")) perche = "chiusa per memoria scarsa";
                     else if (m.contains("stop") || m.contains("force")) { perche = "forzata la chiusura"; chi = d.chi(); }
+                    else if (m.startsWith("isolated not needed")) perche = "processo di servizio non più necessario (normale)";
                     else perche = m;
                 } else if ("CRASH".equals(tipo) && c.length >= 6) perche = c[4].trim() + ": " + c[5].trim();
                 else if ("BLOCCO".equals(tipo)) perche = "non risponde (ANR)";
@@ -112,7 +114,9 @@ final class Radice {
                 testo = d.nome(pkg) + " (" + c[2] + ")" + (perche.isEmpty() ? "" : ": " + perche);
             }
             // am_proc_died è solo cronologia (succede di continuo ai processi in cache); il resto va anche nel riepilogo
-            if (!"MORTA".equals(tipo)) d.morte(tipo + " " + testo);
+            // idem per i processi di servizio isolati (Chrome ne chiude decine): non sono problemi
+            // idem per la pulizia RAM del modulo all'avvio dei giochi (12/11/2026: 248 "chiusure" su 328 erano queste due cose)
+            if (!"MORTA".equals(tipo) && !l.contains("isolated not needed") && !l.contains("kill all background")) d.morte(tipo + " " + testo);
             d.evento(chi, tipo, null, testo);
         }
         pLog.destroy();

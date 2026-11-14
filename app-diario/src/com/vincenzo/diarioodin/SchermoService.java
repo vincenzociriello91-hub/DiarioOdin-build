@@ -59,7 +59,7 @@ public class SchermoService extends AccessibilityService {
         IntentFilter f = new IntentFilter();
         for (String a : new String[]{Intent.ACTION_SCREEN_ON, Intent.ACTION_SCREEN_OFF, Intent.ACTION_USER_PRESENT,
                 Intent.ACTION_BATTERY_CHANGED, Intent.ACTION_SHUTDOWN, Intent.ACTION_AIRPLANE_MODE_CHANGED,
-                Intent.ACTION_HEADSET_PLUG, Intent.ACTION_TIMEZONE_CHANGED, Intent.ACTION_LOCALE_CHANGED,
+                Intent.ACTION_HEADSET_PLUG, Intent.ACTION_TIME_CHANGED, Intent.ACTION_TIMEZONE_CHANGED, Intent.ACTION_LOCALE_CHANGED,
                 "android.bluetooth.device.action.ACL_CONNECTED", "android.bluetooth.device.action.ACL_DISCONNECTED",
                 "android.media.VOLUME_CHANGED_ACTION", "android.intent.action.DOCK_EVENT"})
             f.addAction(a);
@@ -110,6 +110,7 @@ public class SchermoService extends AccessibilityService {
                         st == BatteryManager.BATTERY_STATUS_CHARGING || st == BatteryManager.BATTERY_STATUS_FULL);
                 break;
             }
+            case Intent.ACTION_TIME_CHANGED: d.orologio(); break;
             case Intent.ACTION_AIRPLANE_MODE_CHANGED:
                 d.evento(d.chi(), "AEREO", null, i.getBooleanExtra("state", false) ? "modalità aereo attiva" : "modalità aereo spenta"); break;
             case Intent.ACTION_HEADSET_PLUG:

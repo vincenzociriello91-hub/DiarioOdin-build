@@ -142,12 +142,15 @@ const STRUMENTI = [
   },
   {
     name: "odin_schermo",
-    description: "Foto di quello che c'è adesso sullo schermo della Odin (immagine PNG). Non accende lo schermo e non tocca " +
-      "niente: a schermo spento la foto è nera (lo dice nel testo). scala 2 = 960x540 (predefinita), 1 = 1920x1080 intera " +
+    description: "Foto di quello che c'è adesso sullo schermo della Odin (immagine PNG). Non tocca niente: a schermo spento la foto " +
+      "è nera (lo dice nel testo), a meno di chiedere accendi=true. scala 2 = 960x540 (predefinita), 1 = 1920x1080 intera " +
       "(pesante, solo per testi minuscoli), 3 = 640x360.",
     inputSchema: {
       type: "object",
-      properties: { scala: { type: "integer", description: "1, 2 (predefinito) o 3." } },
+      properties: {
+        scala: { type: "integer", description: "1, 2 (predefinito) o 3." },
+        accendi: { type: "boolean", description: "true = accende lo schermo prima della foto (poi si rispegne da solo dopo il suo tempo normale). Predefinito false." },
+      },
     },
   },
   {
@@ -183,7 +186,7 @@ async function strumento(nome, arg, ponte, origine) {
   }
   if (nome === "odin_schermo") {
     const scala = [1, 2, 3].includes(Number(arg.scala)) ? Number(arg.scala) : 2;
-    const j = await manda(ponte, SCHERMO.replaceAll("__URL__", origine).replaceAll("__SCALA__", String(scala)), ATTESA_MAX);
+    const j = await manda(ponte, SCHERMO.replaceAll("__URL__", origine).replaceAll("__SCALA__", String(scala)).replaceAll("__ACCENDI__", arg.accendi === true ? "1" : "0"), ATTESA_MAX);
     if (j.stato !== "fatto") return testoEsito(j);
     const r = await ponte.fetch(`https://p/prendi_blob?id=${j.id}`);
     if (r.status !== 200) return `Foto non arrivata (uscita ${j.uscita}):\n${j.testo}`;
@@ -211,7 +214,7 @@ async function mcp(req, ponte, origine) {
     if (m.id === undefined || m.id === null) return null;  // notifica
     try {
       if (m.method === "initialize")
-        return { jsonrpc: "2.0", id: m.id, result: { protocolVersion: m.params?.protocolVersion || "2025-06-18", capabilities: { tools: {} }, serverInfo: { name: "odin-ponte", version: "1.1.0" }, instructions: "Comandi da root sulla Odin 2 Portal di Vincenzo. Leggi prima la skill odin-sistema: niente azioni irreversibili senza conferma." } };
+        return { jsonrpc: "2.0", id: m.id, result: { protocolVersion: m.params?.protocolVersion || "2025-06-18", capabilities: { tools: {} }, serverInfo: { name: "odin-ponte", version: "1.1.1" }, instructions: "Comandi da root sulla Odin 2 Portal di Vincenzo. Leggi prima la skill odin-sistema: niente azioni irreversibili senza conferma." } };
       if (m.method === "ping") return { jsonrpc: "2.0", id: m.id, result: {} };
       if (m.method === "tools/list") return { jsonrpc: "2.0", id: m.id, result: { tools: STRUMENTI } };
       if (m.method === "tools/call") {

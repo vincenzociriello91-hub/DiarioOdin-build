@@ -1,8 +1,10 @@
-# Foto dello schermo della Odin (strumento odin_schermo del connettore). Non accende lo schermo e non tocca niente.
+# Foto dello schermo della Odin (strumento odin_schermo del connettore). Non tocca niente; accende lo schermo solo
+# se richiesto (accendi). "input" e gli altri comandi "cmd" falliscono con l'uscita su file: servono </dev/null e | cat.
 # Lo schermo grezzo viene rimpicciolito e trasformato in PNG con il Python di Termux (solo libreria standard),
-# poi caricato sul ponte con lo stesso gettone del modulo. __ID__, __URL__ e __SCALA__ li mette il worker.
+# poi caricato sul ponte con lo stesso gettone del modulo. __ID__, __URL__, __SCALA__ e __ACCENDI__ li mette il worker.
 CFG=/data/adb/odin2tweaks; RUN=/dev/odin2tweaks; PY=/data/data/com.termux/files/usr/bin/python3
 T=$(printf 'ponte|%s' "$(cat $CFG/remoto.key)" | sha256sum | cut -c1-64)
+[ "__ACCENDI__" = 1 ] && { input keyevent KEYCODE_WAKEUP </dev/null 2>&1 | cat; sleep 2; }
 w=$(dumpsys power 2>/dev/null | grep -o 'mWakefulness=[A-Za-z]*' | head -n 1 | cut -d= -f2)
 screencap > $RUN/schermo.raw 2>/dev/null || { echo "screencap non riuscito"; exit 1; }
 if PYTHONDONTWRITEBYTECODE=1 $PY -I -B - $RUN/schermo.raw $RUN/schermo.png __SCALA__ <<'PY'

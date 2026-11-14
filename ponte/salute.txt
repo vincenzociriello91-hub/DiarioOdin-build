@@ -1,0 +1,29 @@
+# Stato di salute della Odin (strumento odin_salute del connettore). Solo letture, niente modifiche.
+B=/sys/class/power_supply/battery
+zmax() { m=-99000; for z in /sys/class/thermal/thermal_zone*; do case $(cat $z/type 2>/dev/null) in $1*) t=$(cat $z/temp 2>/dev/null); case $t in ''|*[!0-9-]*) continue;; esac; [ $t -gt $m ] && m=$t;; esac; done; echo $((m / 1000)); }
+cap=$(cat $B/capacity); st=$(cat $B/status); bt=$(( $(cat $B/temp) / 10 ))
+cpu=$(zmax cpu); gpu=$(zmax gpuss); ddr=$(zmax ddr)
+avail=$(awk '/MemAvailable/{print int($2/1024)}' /proc/meminfo); tot=$(awk '/MemTotal/{print int($2/1024)}' /proc/meminfo)
+swu=$(awk '/SwapTotal/{t=$2} /SwapFree/{f=$2} END{print int((t-f)/1024)}' /proc/meminfo)
+set -- $(df -k /data | tail -n 1); libero=$(( $4 / 1048576 )); usato=$5
+oggi=$(date '+%Y-%m-%d')
+crash=$(dumpsys dropbox 2>/dev/null | grep "^$oggi" | grep -c "crash\|_anr\|TOMBSTONE\|KERNEL_PANIC\|SYSTEM_RESTART")
+err=$(tail -n 300 /data/adb/odin2tweaks/log.txt 2>/dev/null | grep -ci "errore\|non riuscit\|fallit\|rifiutat\|non raggiungibile")
+echo "SALUTE ODIN $(date '+%d/%m/%Y %H:%M') | accesa da $(awk '{printf "%.1f ore", $1/3600}' /proc/uptime) | modulo $(grep '^version=' /data/adb/modules/odin2tweaks/module.prop | cut -d= -f2)"
+echo "batteria: $cap% $st, $bt °C, stato $(cat $B/health 2>/dev/null), corrente $(( $(cat $B/current_now 2>/dev/null || echo 0) / 1000 )) mA"
+echo "temperature: CPU $cpu °C, GPU $gpu °C, memoria $ddr °C"
+for c in /sys/class/thermal/cooling_device*; do case $(cat $c/type 2>/dev/null) in *fan*) echo "ventola: livello $(cat $c/cur_state)/$(cat $c/max_state)";; esac; done
+echo "RAM: $avail MB disponibili su $tot MB, swap usato $swu MB"
+echo "spazio: $libero GB liberi ($usato usato)"
+echo "errori: $crash crash o blocchi di app oggi, $err righe d'errore nel registro del modulo"
+[ $err -gt 0 ] && tail -n 300 /data/adb/odin2tweaks/log.txt | grep -i "errore\|non riuscit\|fallit\|rifiutat\|non raggiungibile" | tail -n 3 | sed 's/^/  /'
+echo "rete: $(ip -br addr | awk '$1 ~ /^wlan/ {printf "%s %s  ", $1, $3}')"
+echo "schermo: $(dumpsys power 2>/dev/null | grep -o 'mWakefulness=[A-Za-z]*' | head -n 1 | cut -d= -f2) | server Minecraft: $(pgrep -f bedrock_server >/dev/null 2>&1 && echo acceso || echo spento) | SSH: $(pgrep -x sshd >/dev/null 2>&1 && echo acceso || echo spento)"
+g=""
+[ $bt -ge 40 ] && g="$g batteria calda ($bt °C);"
+[ $cpu -ge 85 ] && g="$g CPU calda ($cpu °C);"
+[ $avail -lt 600 ] && g="$g poca RAM ($avail MB);"
+[ $libero -lt 10 ] && g="$g poco spazio ($libero GB);"
+[ $cap -lt 20 ] && [ "$st" = Discharging ] && g="$g batteria bassa senza caricatore ($cap%);"
+[ $crash -gt 5 ] && g="$g molti crash oggi ($crash);"
+echo "GIUDIZIO: ${g:-tutto nella norma}"

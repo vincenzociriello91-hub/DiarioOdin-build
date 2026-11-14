@@ -1,0 +1,45 @@
+# Foto dello schermo della Odin (strumento odin_schermo del connettore). Non accende lo schermo e non tocca niente.
+# Lo schermo grezzo viene rimpicciolito e trasformato in PNG con il Python di Termux (solo libreria standard),
+# poi caricato sul ponte con lo stesso gettone del modulo. __ID__, __URL__ e __SCALA__ li mette il worker.
+CFG=/data/adb/odin2tweaks; RUN=/dev/odin2tweaks; PY=/data/data/com.termux/files/usr/bin/python3
+T=$(printf 'ponte|%s' "$(cat $CFG/remoto.key)" | sha256sum | cut -c1-64)
+w=$(dumpsys power 2>/dev/null | grep -o 'mWakefulness=[A-Za-z]*' | head -n 1 | cut -d= -f2)
+screencap > $RUN/schermo.raw 2>/dev/null || { echo "screencap non riuscito"; exit 1; }
+if PYTHONDONTWRITEBYTECODE=1 $PY -I -B - $RUN/schermo.raw $RUN/schermo.png __SCALA__ <<'PY'
+import sys, zlib, struct
+raw = open(sys.argv[1], 'rb').read(); s = int(sys.argv[3])
+w, h, f = struct.unpack('<III', raw[:12])
+hdr = len(raw) - w * h * 4
+if f != 1 or hdr not in (12, 16): sys.exit(3)
+mv = memoryview(raw)[hdr:]
+L = w * 4
+def media(a, b):  # media byte per byte di due righe, senza riporti tra byte vicini
+    n = len(a); x = int.from_bytes(a, 'big'); y = int.from_bytes(b, 'big')
+    return ((x & y) + (((x ^ y) & int.from_bytes(b'\xfe' * n, 'big')) >> 1)).to_bytes(n, 'big')
+out = bytearray()
+if s == 2:
+    W, H = w // 2, h // 2
+    for y in range(H):
+        r = media(mv[2 * y * L:(2 * y + 1) * L], mv[(2 * y + 1) * L:(2 * y + 2) * L])
+        line = bytearray(1 + 3 * W)
+        for c in range(3):
+            line[1 + c::3] = media(r[c::8][:W], r[c + 4::8][:W])
+        out += line
+else:
+    W, H = (w + s - 1) // s, (h + s - 1) // s
+    for y in range(0, h, s):
+        r = mv[y * L:(y + 1) * L]
+        line = bytearray(1 + 3 * W)
+        for c in range(3):
+            line[1 + c::3] = r[c::4 * s]
+        out += line
+def pezzo(t, d): return struct.pack('>I', len(d)) + t + d + struct.pack('>I', zlib.crc32(t + d))
+open(sys.argv[2], 'wb').write(b'\x89PNG\r\n\x1a\n' + pezzo(b'IHDR', struct.pack('>IIBBBBB', W, H, 8, 2, 0, 0, 0)) + pezzo(b'IDAT', zlib.compress(bytes(out), 6)) + pezzo(b'IEND', b''))
+print('%dx%d' % (W, H))
+PY
+then :; else echo "riduzione non riuscita: mando la foto intera"; screencap -p > $RUN/schermo.png; fi
+n=$(wc -c < $RUN/schermo.png)
+c=$(curl -sS -m 60 -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $T" --data-binary @$RUN/schermo.png "__URL__/odin/blob?id=__ID__" 2>&1)
+rm -f $RUN/schermo.raw $RUN/schermo.png
+echo "foto di $n byte, caricamento: $c | schermo: ${w:-?}"
+[ "$c" = 200 ]

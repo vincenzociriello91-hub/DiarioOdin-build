@@ -1,4 +1,4 @@
-=== robot | 26/11/2026 12:53 UTC | evento schedule | ultimo kernel compilato 5646ff2f4a18 ===
+=== robot | 27/11/2026 12:48 UTC | evento schedule | ultimo kernel compilato 5646ff2f4a18 ===
 ultima LineageOS pubblicata: 2026-11-23, kernel 5646ff2f4a18 (dal manifesto della versione)
 questo kernel è già stato compilato
 compila: false
